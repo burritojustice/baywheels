@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Bay Wheels Neighborhood Flows</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+  <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
+  <style>
+    body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
+    #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+    
+    #sidebar {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 350px;
+      height: 100%;
+      background: white;
+      box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+      overflow-y: auto;
+      z-index: 1;
+    }
+    
+    #sidebar-content {
+      padding: 20px;
+    }
+    
+    h2 {
+      margin-top: 0;
+      font-size: 18px;
+      border-bottom: 2px solid #333;
+      padding-bottom: 10px;
+    }
+    
+    .neighborhood-name {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 15px;
+      color: #0066cc;
+    }
+    
+    .stats-summary {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 20px;
+      padding: 10px;
+      background: #f5f5f5;
+      border-radius: 4px;
+    }
+    
+    .stat-box {
+      text-align: center;
+    }
+    
+    .stat-label {
+      font-size: 12px;
+      color: #666;
+      text-transform: uppercase;
+    }
+    
+    .stat-value {
+      font-size: 24px;
+      font-weight: bold;
+      color: #333;
+    }
+    
+    .flow-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    
+    .flow-table th {
+      background: #333;
+      color: white;
+      padding: 8px;
+      text-align: left;
+      font-weight: bold;
+      position: sticky;
+      top: 0;
+    }
+    
+    .flow-table td {
+      padding: 8px;
+      border-bottom: 1px solid #ddd;
+    }
+    
+    .flow-table tr:hover {
+      background: #f5f5f5;
+    }
+    
+    .to-flow { color: #d73027; }
+    .from-flow { color: #4575b4; }
+    
+    .legend {
+      background: white;
+      padding: 10px;
+      border-radius: 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      font-size: 12px;
+      position: absolute;
+      bottom: 30px;
+      left: 10px;
+      z-index: 1;
+    }
+    
+    .legend-title {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    
+    .legend-scale {
+      display: flex;
+      height: 15px;
+      margin: 5px 0;
+    }
+    
+    .legend-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  
+  <div id="sidebar">
+    <div id="sidebar-content">
+      <h2>Neighborhood Flows</h2>
+      <div id="info">
+        <p style="color: #666;">Click on a neighborhood to see ride patterns</p>
+      </div>
+    </div>
+  </div>
+  
+  <div class="legend">
+    <div class="legend-title">Ride Count</div>
+    <div class="legend-scale" style="background: linear-gradient(to right, #ffffcc, #ffeda0, #fed976, #feb24c, #fd8d3c, #fc4e2a, #e31a1c, #b10026);"></div>
+    <div class="legend-labels">
+      <span>Low</span>
+      <span>High</span>
+    </div>
+  </div>
+  
+  <script>
+    const PROTOMAPS_API_KEY = 'ffc24a4325d458ce';
+    
+    const map = new maplibregl.Map({
+      container: 'map',
+      style: `https://api.protomaps.com/styles/v2/white.json?key=${PROTOMAPS_API_KEY}`,
+      center: [-122.43, 37.77],
+      zoom: 12
+    });
+    
+    map.addControl(new maplibregl.NavigationControl());
+    
+    let selectedNeighborhood = null;
+    let neighborhoodsData = null;
+    let centroidsData = null;
+    
+    // ColorBrewer YlOrRd 8-class sequential palette
+    const colorStops = [
+      0, '#ffffcc',
+      100, '#ffeda0',
+      500, '#fed976',
+      1000, '#feb24c',
+      2000, '#fd8d3c',
+      3000, '#fc4e2a',
+      5000, '#e31a1c',
+      10000, '#b10026'
+    ];
+    
+    map.on('load', async () => {
+      // Load GeoJSON files
+      const [neighborhoods, centroids] = await Promise.all([
+        fetch('neighborhoods_with_od.geojson').then(r => r.json()),
+        fetch('neighborhood_centroids.geojson').then(r => r.json())
+      ]);
+      
+      neighborhoodsData = neighborhoods;
+      centroidsData = centroids;
+      
+      // Add neighborhoods layer
+      map.addSource('neighborhoods', {
+        type: 'geojson',
+        data: neighborhoods
+      });
+      
+      map.addLayer({
+        id: 'neighborhoods-fill',
+        type: 'fill',
+        source: 'neighborhoods',
+        paint: {
+          'fill-color': '#cccccc',
+          'fill-opacity': 0.3
+        }
+      });
+      
+      map.addLayer({
+        id: 'neighborhoods-outline',
+        type: 'line',
+        source: 'neighborhoods',
+        paint: {
+          'line-color': '#666',
+          'line-width': 1
+        }
+      });
+      
+      // Add centroids source (will be updated on click)
+      map.addSource('centroids', {
+        type: 'geojson',
+        data: {
+          type: 'FeatureCollection',
+          features: []
+        }
+      });
+      
+      map.addLayer({
+        id: 'centroids-circle',
+        type: 'circle',
+        source: 'centroids',
+        paint: {
+          'circle-radius': [
+            'interpolate', ['linear'], ['get', 'count'],
+            0, 5,
+            10000, 30
+          ],
+          'circle-color': [
+            'interpolate', ['linear'], ['get', 'count'],
+            ...colorStops
+          ],
+          'circle-opacity': 0.8,
+          'circle-stroke-width': 2,
+          'circle-stroke-color': '#fff'
+        }
+      });
+      
+      map.addLayer({
+        id: 'centroids-label',
+        type: 'symbol',
+        source: 'centroids',
+        layout: {
+          'text-field': ['get', 'count'],
+          'text-size': 12,
+          'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold']
+        },
+        paint: {
+          'text-color': '#000',
+          'text-halo-color': '#fff',
+          'text-halo-width': 1
+        }
+      });
+      
+      // Click handler
+      map.on('click', 'neighborhoods-fill', (e) => {
+        if (e.features.length > 0) {
+          const feature = e.features[0];
+          selectedNeighborhood = feature.properties.nhood;
+          updateVisualization(feature.properties);
+        }
+      });
+      
+      // Cursor
+      map.on('mouseenter', 'neighborhoods-fill', () => {
+        map.getCanvas().style.cursor = 'pointer';
+      });
+      
+      map.on('mouseleave', 'neighborhoods-fill', () => {
+        map.getCanvas().style.cursor = '';
+      });
+    });
+    
+    function updateVisualization(properties) {
+      const destinations = JSON.parse(properties.destinations || '{}');
+      const origins = JSON.parse(properties.origins || '{}');
+      
+      // Create centroid features with counts
+      const centroidFeatures = centroidsData.features
+        .filter(f => f.properties.nhood !== properties.nhood)
+        .map(f => {
+          const nhood = f.properties.nhood;
+          const toCount = destinations[nhood] || 0;
+          const fromCount = origins[nhood] || 0;
+          const totalCount = toCount + fromCount;
+          
+          return {
+            type: 'Feature',
+            geometry: f.geometry,
+            properties: {
+              nhood: nhood,
+              count: totalCount,
+              to_count: toCount,
+              from_count: fromCount
+            }
+          };
+        })
+        .filter(f => f.properties.count > 0);
+      
+      map.getSource('centroids').setData({
+        type: 'FeatureCollection',
+        features: centroidFeatures
+      });
+      
+      // Update sidebar
+      updateSidebar(properties, destinations, origins);
+      
+      // Zoom to selected neighborhood
+      const selectedFeature = neighborhoodsData.features.find(
+        f => f.properties.nhood === properties.nhood
+      );
+      
+      if (selectedFeature) {
+        const bounds = new maplibregl.LngLatBounds();
+        const coords = selectedFeature.geometry.coordinates[0];
+        coords.forEach(coord => bounds.extend(coord));
+        map.fitBounds(bounds, { padding: 100 });
+      }
+    }
+    
+    function updateSidebar(properties, destinations, origins) {
+      // Combine and sort flows
+      const allNeighborhoods = new Set([
+        ...Object.keys(destinations),
+        ...Object.keys(origins)
+      ]);
+      
+      const flows = Array.from(allNeighborhoods).map(nhood => ({
+        neighborhood: nhood,
+        to: destinations[nhood] || 0,
+        from: origins[nhood] || 0,
+        total: (destinations[nhood] || 0) + (origins[nhood] || 0)
+      })).sort((a, b) => b.total - a.total);
+      
+      const totalTo = Object.values(destinations).reduce((a, b) => a + b, 0);
+      const totalFrom = Object.values(origins).reduce((a, b) => a + b, 0);
+      
+      const html = `
+        <div class="neighborhood-name">${properties.nhood}</div>
+        
+        <div class="stats-summary">
+          <div class="stat-box">
+            <div class="stat-label">Rides To</div>
+            <div class="stat-value to-flow">${totalTo.toLocaleString()}</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Rides From</div>
+            <div class="stat-value from-flow">${totalFrom.toLocaleString()}</div>
+          </div>
+        </div>
+        
+        <h3 style="font-size: 14px; margin-top: 20px; margin-bottom: 10px;">Connections</h3>
+        <table class="flow-table">
+          <thead>
+            <tr>
+              <th>Neighborhood</th>
+              <th style="text-align: right;">To</th>
+              <th style="text-align: right;">From</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${flows.map(f => `
+              <tr>
+                <td>${f.neighborhood}</td>
+                <td style="text-align: right;" class="to-flow">${f.to.toLocaleString()}</td>
+                <td style="text-align: right;" class="from-flow">${f.from.toLocaleString()}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+      
+      document.getElementById('info').innerHTML = html;
+    }
+  </script>
+</body>
+</html>
