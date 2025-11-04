@@ -306,19 +306,6 @@
       
       // Update sidebar
       updateSidebar(properties, destinations, origins);
-      
-      // Zoom to selected neighborhood
-      const selectedFeature = neighborhoodsData.features.find(
-        f => f.properties.nhood === properties.nhood
-      );
-      
-      if (selectedFeature) {
-        const bounds = new maplibregl.LngLatBounds();
-        const coords = selectedFeature.geometry.coordinates[0];
-        coords.forEach(coord => bounds.extend(coord));
-        map.fitBounds(bounds, { padding: 100 });
-      }
-    }
     
     function updateSidebar(properties, destinations, origins) {
       // Combine and sort flows
