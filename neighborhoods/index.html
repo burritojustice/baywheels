@@ -310,8 +310,14 @@
     });
     
     function updateVisualization(properties) {
+      console.log('Selected neighborhood:', properties.nhood);
+      console.log('Properties:', properties);
+      
       const destinations = JSON.parse(properties.destinations || '{}');
       const origins = JSON.parse(properties.origins || '{}');
+      
+      console.log('Destinations:', destinations);
+      console.log('Origins:', origins);
       
       // Create centroid features with counts
       const centroidFeatures = centroidsData.features
@@ -334,6 +340,9 @@
           };
         })
         .filter(f => f.properties.count > 0);
+      
+      console.log('Centroid features to display:', centroidFeatures.length);
+      console.log('Sample feature:', centroidFeatures[0]);
       
       map.getSource('centroids').setData({
         type: 'FeatureCollection',
