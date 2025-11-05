@@ -209,6 +209,23 @@
         }
       });
       
+      // Add neighborhood labels
+      map.addLayer({
+        id: 'neighborhoods-labels',
+        type: 'symbol',
+        source: 'neighborhoods',
+        layout: {
+          'text-field': ['get', 'nhood'],
+          'text-size': 12,
+          'text-font': ['Open Sans Regular', 'Arial Unicode MS Regular']
+        },
+        paint: {
+          'text-color': '#333',
+          'text-halo-color': '#fff',
+          'text-halo-width': 2
+        }
+      });
+      
       // Add centroids source (will be updated on click)
       map.addSource('centroids', {
         type: 'geojson',
@@ -225,12 +242,21 @@
         paint: {
           'circle-radius': [
             'interpolate', ['linear'], ['get', 'count'],
-            0, 5,
-            10000, 30
+            0, 8,
+            1000, 15,
+            5000, 25,
+            10000, 35
           ],
           'circle-color': [
-            'interpolate', ['linear'], ['get', 'count'],
-            ...colorStops
+            'step', ['get', 'count'],
+            '#ffffcc', 100,
+            '#ffeda0', 500,
+            '#fed976', 1000,
+            '#feb24c', 2000,
+            '#fd8d3c', 3000,
+            '#fc4e2a', 5000,
+            '#e31a1c', 10000,
+            '#b10026'
           ],
           'circle-opacity': 0.8,
           'circle-stroke-width': 2,
@@ -243,14 +269,14 @@
         type: 'symbol',
         source: 'centroids',
         layout: {
-          'text-field': ['get', 'count'],
-          'text-size': 12,
+          'text-field': ['concat', ['get', 'nhood'], '\n', ['get', 'count']],
+          'text-size': 11,
           'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold']
         },
         paint: {
           'text-color': '#000',
           'text-halo-color': '#fff',
-          'text-halo-width': 1
+          'text-halo-width': 1.5
         }
       });
       
