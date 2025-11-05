@@ -209,23 +209,6 @@
         }
       });
       
-      // Add neighborhood labels
-      map.addLayer({
-        id: 'neighborhoods-labels',
-        type: 'symbol',
-        source: 'neighborhoods',
-        layout: {
-          'text-field': ['get', 'nhood'],
-          'text-size': 12,
-          'text-font': ['Open Sans Regular', 'Arial Unicode MS Regular']
-        },
-        paint: {
-          'text-color': '#333',
-          'text-halo-color': '#fff',
-          'text-halo-width': 2
-        }
-      });
-      
       // Add centroids source (will be updated on click)
       map.addSource('centroids', {
         type: 'geojson',
