@@ -249,24 +249,8 @@
         type: 'circle',
         source: 'centroids',
         paint: {
-          'circle-radius': [
-            'interpolate', ['linear'], ['get', 'count'],
-            0, 8,
-            1000, 15,
-            5000, 25,
-            10000, 35
-          ],
-          'circle-color': [
-            'step', ['get', 'count'],
-            '#ffffcc', 100,
-            '#ffeda0', 500,
-            '#fed976', 1000,
-            '#feb24c', 2000,
-            '#fd8d3c', 3000,
-            '#fc4e2a', 5000,
-            '#e31a1c', 10000,
-            '#b10026'
-          ],
+          'circle-radius': 10,
+          'circle-color': '#fc4e2a',
           'circle-opacity': 0.8,
           'circle-stroke-width': 2,
           'circle-stroke-color': '#fff'
