@@ -328,10 +328,20 @@
       console.log('Centroid features to display:', centroidFeatures.length);
       console.log('Sample feature:', centroidFeatures[0]);
       
-      map.getSource('centroids').setData({
+      const centroidCollection = {
         type: 'FeatureCollection',
         features: centroidFeatures
-      });
+      };
+      
+      console.log('Setting centroids source data:', centroidCollection);
+      map.getSource('centroids').setData(centroidCollection);
+      
+      // Check if the layer exists and data was set
+      setTimeout(() => {
+        const source = map.getSource('centroids');
+        console.log('Centroids source after update:', source);
+        console.log('Centroids layer exists:', map.getLayer('centroids-circle'));
+      }, 100);
       
       // Update sidebar
       updateSidebar(properties, destinations, origins);
