@@ -249,8 +249,15 @@
         type: 'circle',
         source: 'centroids',
         paint: {
-          'circle-radius': 10,
-          'circle-color': '#fc4e2a',
+          'circle-radius': [
+            'interpolate', ['linear'], ['get', 'count'],
+            0, 5,
+            10000, 30
+          ],
+          'circle-color': [
+            'interpolate', ['linear'], ['get', 'count'],
+            ...colorStops
+          ],
           'circle-opacity': 0.8,
           'circle-stroke-width': 2,
           'circle-stroke-color': '#fff'
