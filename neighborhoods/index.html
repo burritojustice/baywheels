@@ -180,10 +180,6 @@
         fetch('https://burritojustice.github.io/baywheels/neighborhoods/neighborhood_centroids.geojson').then(r => r.json())
       ]);
       
-      console.log('Loaded neighborhoods:', neighborhoods.features.length);
-      console.log('Loaded centroids:', centroids.features.length);
-      console.log('Sample neighborhood:', neighborhoods.features[0]);
-      
       neighborhoodsData = neighborhoods;
       centroidsData = centroids;
       
@@ -270,17 +266,17 @@
         type: 'symbol',
         source: 'centroids',
         layout: {
-          'text-ignore-placement': true,
+          'symbol-placement': 'point',
           'text-allow-overlap': true,
-          'text-field': ['get', 'count'],
-          'text-size': 11,
-          'text-font': ['Noto Sans Bold'],
-          'text-offset': [0, 12]
+          'icon-allow-overlap': true,
+          'text-field': ['to-string', ['get', 'count']],
+          'text-size': 12,
+          'text-font': ['Noto Sans Bold']
         },
         paint: {
-          'text-color': '#000',
-          'text-halo-color': '#fff',
-          'text-halo-width': 1.5
+          'text-color': '#fff',
+          'text-halo-color': '#000',
+          'text-halo-width': 1
         }
       });
       
@@ -304,18 +300,12 @@
     });
     
     function updateVisualization(properties) {
-      console.log('Selected neighborhood:', properties.nhood);
-      console.log('Properties:', properties);
-      
       const destinations = JSON.parse(properties.destinations || '{}');
       const origins = JSON.parse(properties.origins || '{}');
       
-      console.log('Destinations:', destinations);
-      console.log('Origins:', origins);
-      
       // Create centroid features with counts
       const centroidFeatures = centroidsData.features
-        .filter(f => f.properties.nhood) // !== properties.nhood)
+        .filter(f => f.properties.nhood)
         .map(f => {
           const nhood = f.properties.nhood;
           const toCount = destinations[nhood] || 0;
@@ -335,23 +325,10 @@
         })
         .filter(f => f.properties.count > 0);
       
-      console.log('Centroid features to display:', centroidFeatures.length);
-      console.log('Sample feature:', centroidFeatures[0]);
-      
-      const centroidCollection = {
+      map.getSource('centroids').setData({
         type: 'FeatureCollection',
         features: centroidFeatures
-      };
-      
-      console.log('Setting centroids source data:', centroidCollection);
-      map.getSource('centroids').setData(centroidCollection);
-      
-      // Check if the layer exists and data was set
-      setTimeout(() => {
-        const source = map.getSource('centroids');
-        console.log('Centroids source after update:', source);
-        console.log('Centroids layer exists:', map.getLayer('centroids-circle'));
-      }, 100);
+      });
       
       // Update sidebar
       updateSidebar(properties, destinations, origins);
