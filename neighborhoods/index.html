@@ -264,22 +264,23 @@
         }
       });
       
-      // map.addLayer({
-      //   id: 'centroids-label',
-      //   type: 'symbol',
-      //   source: 'centroids',
-      //   layout: {
-      //     'text-field': ['get', 'nhood'],
-      //     'text-size': 11,
-      //     'text-font': ['Noto Sans Bold'],
-      //     'text-offset': [0, 2]
-      //   },
-      //   paint: {
-      //     'text-color': '#000',
-      //     'text-halo-color': '#fff',
-      //     'text-halo-width': 1.5
-      //   }
-      // });
+      map.addLayer({
+        id: 'centroids-label',
+        type: 'symbol',
+        source: 'centroids',
+        layout: {
+          'text-field': ['concat', ['get', 'nhood'], '\n', ['get', 'count']],
+          // 'text-field': ['get', 'nhood'],
+          'text-size': 11,
+          'text-font': ['Noto Sans Bold'],
+          'text-offset': [0, 2]
+        },
+        paint: {
+          'text-color': '#000',
+          'text-halo-color': '#fff',
+          'text-halo-width': 1.5
+        }
+      });
       
       // Click handler
       map.on('click', 'neighborhoods-fill', (e) => {
