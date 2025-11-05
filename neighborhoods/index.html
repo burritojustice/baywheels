@@ -224,7 +224,6 @@
         type: 'symbol',
         source: 'all-centroids',
         layout: {
-          'text-ignore-placement': true,
           'text-field': ['get', 'nhood'],
           'text-size': 11,
           'text-font': ['Noto Sans Regular']
@@ -250,38 +249,30 @@
         type: 'circle',
         source: 'centroids',
         paint: {
-          'circle-radius': [
-            'interpolate', ['linear'], ['get', 'count'],
-            0, 5,
-            10000, 30
-          ],
-          'circle-color': [
-            'interpolate', ['linear'], ['get', 'count'],
-            ...colorStops
-          ],
+          'circle-radius': 10,
+          'circle-color': '#fc4e2a',
           'circle-opacity': 0.8,
           'circle-stroke-width': 2,
-          'circle-stroke-color': '#000'
+          'circle-stroke-color': '#fff'
         }
       });
       
-      // map.addLayer({
-      //   id: 'centroids-label',
-      //   type: 'symbol',
-      //   source: 'centroids',
-      //   layout: {
-      //     'text-field': ['concat', ['get', 'nhood'], '\n', ['get', 'count']],
-      //     'text-field': ['get', 'nhood'],
-      //     'text-size': 11,
-      //     'text-font': ['Noto Sans Bold'],
-      //     'text-offset': [0, 12]
-      //   },
-      //   paint: {
-      //     'text-color': '#000',
-      //     'text-halo-color': '#fff',
-      //     'text-halo-width': 1.5
-      //   }
-      // });
+      map.addLayer({
+        id: 'centroids-label',
+        type: 'symbol',
+        source: 'centroids',
+        layout: {
+          'text-field': ['get', 'nhood'],
+          'text-size': 11,
+          'text-font': ['Noto Sans Bold'],
+          'text-offset': [0, 2]
+        },
+        paint: {
+          'text-color': '#000',
+          'text-halo-color': '#fff',
+          'text-halo-width': 1.5
+        }
+      });
       
       // Click handler
       map.on('click', 'neighborhoods-fill', (e) => {
@@ -314,7 +305,8 @@
       
       // Create centroid features with counts
       const centroidFeatures = centroidsData.features
-        .filter(f => f.properties.nhood) // !== properties.nhood)
+        // .filter(f => f.properties.nhood !== properties.nhood)
+        .filter(f => f.properties.nhood)
         .map(f => {
           const nhood = f.properties.nhood;
           const toCount = destinations[nhood] || 0;
