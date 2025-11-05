@@ -176,8 +176,8 @@
     map.on('load', async () => {
       // Load GeoJSON files
       const [neighborhoods, centroids] = await Promise.all([
-        fetch('neighborhoods_with_od.geojson').then(r => r.json()),
-        fetch('neighborhood_centroids.geojson').then(r => r.json())
+        fetch('https://burritojustice.github.io/baywheels/neighborhoods/neighborhoods_with_od.geojson').then(r => r.json()),
+        fetch('https://burritojustice.github.io/baywheels/neighborhoods/neighborhood_centroids.geojson').then(r => r.json())
       ]);
       
       console.log('Loaded neighborhoods:', neighborhoods.features.length);
