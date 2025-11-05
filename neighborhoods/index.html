@@ -180,6 +180,10 @@
         fetch('neighborhood_centroids.geojson').then(r => r.json())
       ]);
       
+      console.log('Loaded neighborhoods:', neighborhoods.features.length);
+      console.log('Loaded centroids:', centroids.features.length);
+      console.log('Sample neighborhood:', neighborhoods.features[0]);
+      
       neighborhoodsData = neighborhoods;
       centroidsData = centroids;
       
