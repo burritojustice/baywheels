@@ -247,25 +247,25 @@
         }
       });
       
-      // map.addLayer({
-      //   id: 'centroids-circle',
-      //   type: 'circle',
-      //   source: 'centroids',
-      //   paint: {
-      //     'circle-radius': [
-      //       'interpolate', ['linear'], ['get', 'count'],
-      //       0, 5,
-      //       10000, 30
-      //     ],
-      //     'circle-color': [
-      //       'interpolate', ['linear'], ['get', 'count'],
-      //       ...colorStops
-      //     ],
-      //     'circle-opacity': 0.8,
-      //     'circle-stroke-width': 2,
-      //     'circle-stroke-color': '#000'
-      //   }
-      // });
+      map.addLayer({
+        id: 'centroids-circle',
+        type: 'circle',
+        source: 'centroids',
+        paint: {
+          'circle-radius': [
+            'interpolate', ['linear'], ['get', 'count'],
+            0, 5,
+            10000, 30
+          ],
+          'circle-color': [
+            'interpolate', ['linear'], ['get', 'count'],
+            ...colorStops
+          ],
+          'circle-opacity': 0.8,
+          'circle-stroke-width': 2,
+          'circle-stroke-color': '#000'
+        }
+      });
       
       map.addLayer({
         id: 'centroids-label',
@@ -275,8 +275,7 @@
           'symbol-placement': 'point',
           'text-allow-overlap': true,
           'icon-allow-overlap': true,
-          // 'text-field': ['to-string', ['get', 'count']],
-          'text-field': 'x',
+          'text-field': ['to-string', ['get', 'count']],
           'text-size': 12,
           'text-font': ['Noto Sans Regular']
         },
