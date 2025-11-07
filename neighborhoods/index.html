@@ -360,6 +360,9 @@
       //     updateVisualization(feature.properties);
       //   }
       // });
+      
+      let selectedFeatureId = null;
+
       map.on('click', 'neighborhoods-fill', (e) => {
         if (e.features.length > 0) {
           const feature = e.features[0];
