@@ -196,11 +196,11 @@
         type: 'fill',
         source: 'neighborhoods',
         paint: {
-          // 'fill-color': '#cccccc',
-          'fill-color': [
-            'interpolate', ['linear'], ['get', 'count'],
-            ...colorStops
-          ],
+          'fill-color': '#cccccc',
+          // 'fill-color': [
+          //   'interpolate', ['linear'], ['get', 'count'],
+          //   ...colorStops
+          // ],
           'fill-opacity': 0.3
         }
       });
@@ -247,25 +247,25 @@
         }
       });
       
-      map.addLayer({
-        id: 'centroids-circle',
-        type: 'circle',
-        source: 'centroids',
-        paint: {
-          'circle-radius': [
-            'interpolate', ['linear'], ['get', 'count'],
-            0, 5,
-            10000, 30
-          ],
-          'circle-color': [
-            'interpolate', ['linear'], ['get', 'count'],
-            ...colorStops
-          ],
-          'circle-opacity': 0.8,
-          'circle-stroke-width': 2,
-          'circle-stroke-color': '#000'
-        }
-      });
+      // map.addLayer({
+      //   id: 'centroids-circle',
+      //   type: 'circle',
+      //   source: 'centroids',
+      //   paint: {
+      //     'circle-radius': [
+      //       'interpolate', ['linear'], ['get', 'count'],
+      //       0, 5,
+      //       10000, 30
+      //     ],
+      //     'circle-color': [
+      //       'interpolate', ['linear'], ['get', 'count'],
+      //       ...colorStops
+      //     ],
+      //     'circle-opacity': 0.8,
+      //     'circle-stroke-width': 2,
+      //     'circle-stroke-color': '#000'
+      //   }
+      // });
       
       map.addLayer({
         id: 'centroids-label',
