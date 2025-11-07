@@ -296,14 +296,14 @@
           'text-allow-overlap': true,
           'icon-allow-overlap': true,
           // 'text-field': ['to-string', ['get', 'to_count']],
-          'text-field': ['concat', ['to-string', ['get', 'to_count']], '➔'],
+          'text-field': ['concat', ['to-string', ['get', 'to_count']], ' ➔'],
           'text-size': 12,
           'text-font': ['Noto Sans Regular'],
           'text-radial-offset': [
             'interpolate', ['linear'], ['get', 'count'],
             0, .75,      // Small offset for small circles
-            1000, 1.5,
-            5000, 2.0,
+            1000, 1.25,
+            5000, 1.75,
             10000, 3.0
           ],
           'text-anchor': 'right'
@@ -323,7 +323,7 @@
           'symbol-placement': 'point',
           'text-allow-overlap': true,
           'icon-allow-overlap': true,
-          'text-field': ['concat', '➔', ['to-string', ['get', 'from_count']]],
+          'text-field': ['concat', '➔ ', ['to-string', ['get', 'from_count']]],
           'text-size': 12,
           'text-font': ['Noto Sans Regular'],
           'text-radial-offset': [
