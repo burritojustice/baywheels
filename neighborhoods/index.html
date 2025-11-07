@@ -191,16 +191,26 @@
         data: neighborhoods
       });
       
+      // map.addLayer({
+      //   id: 'neighborhoods-fill',
+      //   type: 'fill',
+      //   source: 'neighborhoods',
+      //   paint: {
+      //     'fill-color': '#cccccc',
+      //     'fill-opacity': 0.3
+      //   }
+      // });
       map.addLayer({
         id: 'neighborhoods-fill',
         type: 'fill',
         source: 'neighborhoods',
         paint: {
-          'fill-color': '#cccccc',
-          // 'fill-color': [
-          //   'interpolate', ['linear'], ['get', 'count'],
-          //   ...colorStops
-          // ],
+          'fill-color': [
+            'case',
+            ['boolean', ['feature-state', 'selected'], false],
+            '#666666',  // Darker color when selected
+            '#cccccc'   // Default color
+          ],
           'fill-opacity': 0.3
         }
       });
@@ -343,13 +353,36 @@
       });
       
       // Click handler
+      // map.on('click', 'neighborhoods-fill', (e) => {
+      //   if (e.features.length > 0) {
+      //     const feature = e.features[0];
+      //     selectedNeighborhood = feature.properties.nhood;
+      //     updateVisualization(feature.properties);
+      //   }
+      // });
       map.on('click', 'neighborhoods-fill', (e) => {
         if (e.features.length > 0) {
           const feature = e.features[0];
-          selectedNeighborhood = feature.properties.nhood;
-          updateVisualization(feature.properties);
-        }
-      });
+          
+          // Reset previous selection
+          if (selectedFeatureId !== null) {
+            map.setFeatureState(
+              { source: 'neighborhoods', id: selectedFeatureId },
+              { selected: false }
+            );
+          }
+    
+    // Set new selection
+    selectedFeatureId = feature.id;
+    map.setFeatureState(
+      { source: 'neighborhoods', id: feature.id },
+      { selected: true }
+    );
+    
+    selectedNeighborhood = feature.properties.nhood;
+    updateVisualization(feature.properties);
+  }
+});
       
       // Cursor
       map.on('mouseenter', 'neighborhoods-fill', () => {
