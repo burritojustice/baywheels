@@ -286,6 +286,26 @@
           'text-halo-width': 1
         }
       });
+
+            map.addLayer({
+        id: 'to-label',
+        type: 'symbol',
+        source: 'centroids',
+        layout: {
+          'symbol-placement': 'point',
+          'text-allow-overlap': true,
+          'icon-allow-overlap': true,
+          'text-field': ['to-string', ['get', 'toCount']],
+          'text-size': 12,
+          'text-font': ['Noto Sans Regular'],
+          "text-anchor": "top"
+        },
+        paint: {
+          'text-color': '#fff',
+          'text-halo-color': '#000',
+          'text-halo-width': 1
+        }
+      });
       
       // Click handler
       map.on('click', 'neighborhoods-fill', (e) => {
