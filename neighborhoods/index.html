@@ -196,7 +196,11 @@
         type: 'fill',
         source: 'neighborhoods',
         paint: {
-          'fill-color': '#cccccc',
+          // 'fill-color': '#cccccc',
+          'fill-color': [
+            'interpolate', ['linear'], ['get', 'count'],
+            ...colorStops
+          ]
           'fill-opacity': 0.3
         }
       });
@@ -212,10 +216,10 @@
       });
       
       // Add all neighborhood labels from centroids
-      map.addSource('all-centroids', {
-        type: 'geojson',
-        data: centroids
-      });
+      // map.addSource('all-centroids', {
+      //   type: 'geojson',
+      //   data: centroids
+      // });
       
       // map.addLayer({
       //   id: 'all-labels',
