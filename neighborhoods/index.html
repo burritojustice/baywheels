@@ -268,24 +268,24 @@
         }
       });
       
-      map.addLayer({
-        id: 'centroids-label',
-        type: 'symbol',
-        source: 'centroids',
-        layout: {
-          'symbol-placement': 'point',
-          'text-allow-overlap': true,
-          'icon-allow-overlap': true,
-          'text-field': ['to-string', ['get', 'count']],
-          'text-size': 12,
-          'text-font': ['Noto Sans Regular']
-        },
-        paint: {
-          'text-color': '#fff',
-          'text-halo-color': '#000',
-          'text-halo-width': 1
-        }
-      });
+      // map.addLayer({
+      //   id: 'centroids-label',
+      //   type: 'symbol',
+      //   source: 'centroids',
+      //   layout: {
+      //     'symbol-placement': 'point',
+      //     'text-allow-overlap': true,
+      //     'icon-allow-overlap': true,
+      //     'text-field': ['to-string', ['get', 'count']],
+      //     'text-size': 12,
+      //     'text-font': ['Noto Sans Regular']
+      //   },
+      //   paint: {
+      //     'text-color': '#fff',
+      //     'text-halo-color': '#000',
+      //     'text-halo-width': 1
+      //   }
+      // });
 
             map.addLayer({
         id: 'to-label',
