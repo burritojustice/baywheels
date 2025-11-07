@@ -295,7 +295,8 @@
           'symbol-placement': 'point',
           'text-allow-overlap': true,
           'icon-allow-overlap': true,
-          'text-field': ['to-string', ['get', 'to_count']],
+          // 'text-field': ['to-string', ['get', 'to_count']],
+          ['concat', ['to-string', ['get', 'to_count']], ' →',]
           'text-size': 12,
           'text-font': ['Noto Sans Regular'],
           'text-radial-offset': [
@@ -305,7 +306,7 @@
             5000, 2.0,
             10000, 3.0
           ],
-          'text-anchor': 'bottom'
+          'text-anchor': 'left'
         },
         paint: {
           'text-color': '#000',
@@ -327,10 +328,10 @@
           'text-font': ['Noto Sans Regular'],
           'text-radial-offset': [
             'interpolate', ['linear'], ['get', 'count'],
-            0, 1,      // Small offset for small circles
-            1000, 2.0,
-            5000, 4.0,
-            10000, 4.0
+            0, .75,      // Small offset for small circles
+            1000, 1.5,
+            5000, 2.0,
+            10000, 3.0
           ],
           'text-anchor': 'top'
         },
