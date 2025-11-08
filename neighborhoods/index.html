@@ -23,6 +23,29 @@
       overflow-y: auto;
       z-index: 1;
     }
+
+    #sidebar.closed {
+  transform: translateX(100%);
+}
+
+/* Mobile: closed by default */
+@media screen and (max-width: 768px) {
+  #sidebar {
+    width: 100%;
+    transform: translateX(100%);
+  }
+  
+  #sidebar.open {
+    transform: translateX(0);
+  }
+  
+  #toggle-sidebar::before {
+    content: '☰';
+  }
+  
+  #sidebar.open ~ #toggle-sidebar::before {
+    content: '✕';
+  }
     
     #sidebar-content {
       padding: 20px;
@@ -149,6 +172,19 @@
   
   <script>
     const PROTOMAPS_API_KEY = 'ffc24a4325d458ce';
+
+    const sidebar = document.getElementById('sidebar');
+    const toggleBtn = document.getElementById('toggle-sidebar');
+    
+    toggleBtn.addEventListener('click', () => {
+      // On mobile, toggle 'open' class
+      // On desktop, toggle 'closed' class
+      if (window.innerWidth <= 768) {
+        sidebar.classList.toggle('open');
+      } else {
+        sidebar.classList.toggle('closed');
+      }
+    });
     
     const map = new maplibregl.Map({
       container: 'map',
@@ -274,7 +310,7 @@
       });
       
       map.addLayer({
-        id: 'all-labels',
+        id: 'neighborhood-labels',
         type: 'symbol',
         source: 'all-centroids',
         layout: {
@@ -362,7 +398,7 @@
         paint: {
           'text-color': '#000',
           'text-halo-color': '#fff',
-          'text-halo-width': 1
+          'text-halo-width': 2
         }
       });
 
