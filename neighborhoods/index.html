@@ -176,6 +176,18 @@
     ];
     
     map.on('load', async () => {
+      // hide basemap labels
+      const placeLabelLayers = [
+        "places_subplace",
+        "places_region",
+        "places_locality",
+        "places_country"
+      ];
+      
+      placeLabelLayers.forEach(layerId => {
+          map.setLayoutProperty(layerId, 'visibility', 'none');
+      });
+    
       // Load GeoJSON files
       const [neighborhoods, centroids] = await Promise.all([
         fetch('https://burritojustice.github.io/baywheels/neighborhoods/neighborhoods_with_od.geojson').then(r => r.json()),
