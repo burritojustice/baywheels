@@ -11,7 +11,6 @@
   <style>
     body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
     #map { position: absolute; top: 0; bottom: 0; width: 100%; }
-    
     #sidebar {
       position: absolute;
       top: 0;
@@ -22,8 +21,9 @@
       box-shadow: -2px 0 5px rgba(0,0,0,0.1);
       overflow-y: auto;
       z-index: 1;
+      transition: transform 0.3s ease;
     }
-/* 
+    
     #sidebar.closed {
       transform: translateX(100%);
     }
@@ -47,7 +47,7 @@
         content: '✕';
       }
     }
-
+    
     /* Desktop: open by default */
     @media screen and (min-width: 769px) {
       #sidebar {
@@ -66,7 +66,7 @@
         content: '☰';
       }
     }
-
+    
     #toggle-sidebar {
       position: absolute;
       top: 10px;
@@ -83,7 +83,7 @@
     
     #toggle-sidebar:hover {
       background: #f5f5f5;
-    } */
+    }
     
     #sidebar-content {
       padding: 20px;
