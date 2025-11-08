@@ -254,6 +254,7 @@
     ];
     
     map.on('load', async () => {
+      adjustMapPadding();
       // hide basemap labels
       const placeLabelLayers = [
         "places_subplace",
@@ -281,30 +282,7 @@
         data: neighborhoods,
         promoteId: 'nhood'  // Use nhood property as the feature ID
       });
-      
-      // map.addLayer({
-      //   id: 'neighborhoods-fill',
-      //   type: 'fill',
-      //   source: 'neighborhoods',
-      //   paint: {
-      //     'fill-color': '#cccccc',
-      //     'fill-opacity': 0.3
-      //   }
-      // });
-      // map.addLayer({
-      //   id: 'neighborhoods-fill',
-      //   type: 'fill',
-      //   source: 'neighborhoods',
-      //   paint: {
-      //     'fill-color': [
-      //       'case',
-      //       ['boolean', ['feature-state', 'selected'], false],
-      //       '#666666',  // Darker color when selected
-      //       '#cccccc'   // Default color
-      //     ],
-      //     'fill-opacity': 0.3
-      //   }
-      // });
+    
 
       map.addLayer({
         id: 'neighborhoods-fill',
@@ -470,15 +448,6 @@
         }
       });
       
-      // Click handler
-      // map.on('click', 'neighborhoods-fill', (e) => {
-      //   if (e.features.length > 0) {
-      //     const feature = e.features[0];
-      //     selectedNeighborhood = feature.properties.nhood;
-      //     updateVisualization(feature.properties);
-      //   }
-      // });
-      
       let selectedFeatureId = null;
       
       map.on('click', 'neighborhoods-fill', (e) => {
@@ -525,6 +494,21 @@
         map.getCanvas().style.cursor = '';
       });
     });
+    
+    // Adjust map padding on window resize
+    window.addEventListener('resize', adjustMapPadding);
+
+    // Adjust map center to account for sidebar on desktop
+    function adjustMapPadding() {
+      const isMobile = window.innerWidth <= 768;
+      if (!isMobile) {
+        // On desktop, add padding to the right to account for 350px sidebar
+        map.setPadding({ right: 350 });
+      } else {
+        // On mobile, no padding needed since sidebar is hidden by default
+        map.setPadding({ right: 0 });
+      }
+    }
     
     function updateVisualization(properties) {
       const destinations = JSON.parse(properties.destinations || '{}');
