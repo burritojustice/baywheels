@@ -164,7 +164,7 @@
       box-shadow: 0 1px 3px rgba(0,0,0,0.3);
       font-size: 12px;
       position: absolute;
-      bottom: 30px;
+      top: 30px;
       left: 10px;
       z-index: 1;
     }
@@ -234,7 +234,7 @@
       zoom: 12
     });
     
-    map.addControl(new maplibregl.NavigationControl(),'top-left');
+    map.addControl(new maplibregl.NavigationControl(),'bottom-left');
     
     let selectedNhood = null;
     let anySelected = false;
