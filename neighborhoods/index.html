@@ -226,13 +226,14 @@
         sidebar.classList.toggle('closed');
       }
     });
-    const sf_bbox = [[-122.5149475795090268,37.7081319996789333].[-122.3569668766597545,37.8120157900931133]]
-      // [([-122.5137,37.7099],[-122.3785,37.8101]]
+    const sf_sw = [-122.5149475795090268,37.7081319996789333]
+    const sf_ne = [-122.3569668766597545,37.8120157900931133]
+    // const sf_bbox = [[-122.5149475795090268,37.7081319996789333].[-122.3569668766597545,37.8120157900931133]]
 
     const map = new maplibregl.Map({
       container: 'map',
       style: `https://api.protomaps.com/styles/v2/white.json?key=${PROTOMAPS_API_KEY}`,
-      bounds: sf_bbox,
+      bounds:[sf_sw,sf_ne],
       // center: [-122.43, 37.77],
       zoom: 12
     });
