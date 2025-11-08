@@ -485,11 +485,16 @@
         if (e.features.length > 0) {
           const feature = e.features[0];
 
-          // If this is the first selection, update the layer style
-            if (!anySelected) {
-              anySelected = true;
-              map.setPaintProperty('neighborhoods-fill', 'fill-color', '#cccccc');
-            }
+          // If this is the first selection, update the layer style to grey for all
+          if (!anySelected) {
+            anySelected = true;
+            map.setPaintProperty('neighborhoods-fill', 'fill-color', [
+              'case',
+              ['boolean', ['feature-state', 'selected'], false],
+              '#666666',  // Darker when selected
+              '#cccccc'   // Grey for all others after first click
+            ]);
+          }
           
           // Reset previous selection
           if (selectedFeatureId !== null) {
