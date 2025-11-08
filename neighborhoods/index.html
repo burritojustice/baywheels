@@ -159,7 +159,8 @@
     
     map.addControl(new maplibregl.NavigationControl());
     
-    let selectedNeighborhood = null;
+    let selectedNhood = null;
+    let anySelected = false;
     let neighborhoodsData = null;
     let centroidsData = null;
     
@@ -213,6 +214,21 @@
       //     'fill-opacity': 0.3
       //   }
       // });
+      // map.addLayer({
+      //   id: 'neighborhoods-fill',
+      //   type: 'fill',
+      //   source: 'neighborhoods',
+      //   paint: {
+      //     'fill-color': [
+      //       'case',
+      //       ['boolean', ['feature-state', 'selected'], false],
+      //       '#666666',  // Darker color when selected
+      //       '#cccccc'   // Default color
+      //     ],
+      //     'fill-opacity': 0.3
+      //   }
+      // });
+
       map.addLayer({
         id: 'neighborhoods-fill',
         type: 'fill',
@@ -221,8 +237,20 @@
           'fill-color': [
             'case',
             ['boolean', ['feature-state', 'selected'], false],
-            '#666666',  // Darker color when selected
-            '#cccccc'   // Default color
+            '#666666',  // Darker when selected
+            // Otherwise color by total_starts + total_ends
+            [
+              'interpolate', ['linear'],
+              ['+', ['get', 'total_starts'], ['get', 'total_ends']],
+              0, '#ffffcc',
+              1000, '#ffeda0',
+              5000, '#fed976',
+              10000, '#feb24c',
+              20000, '#fd8d3c',
+              30000, '#fc4e2a',
+              50000, '#e31a1c',
+              100000, '#b10026'
+            ]
           ],
           'fill-opacity': 0.3
         }
@@ -379,6 +407,12 @@
       map.on('click', 'neighborhoods-fill', (e) => {
         if (e.features.length > 0) {
           const feature = e.features[0];
+
+          // If this is the first selection, update the layer style
+            if (!anySelected) {
+              anySelected = true;
+              map.setPaintProperty('neighborhoods-fill', 'fill-color', '#cccccc');
+            }
           
           // Reset previous selection
           if (selectedFeatureId !== null) {
