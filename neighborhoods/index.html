@@ -451,10 +451,10 @@
             ['boolean', ['feature-state', 'hide'], false],
             0,  // Hidden when feature-state hide is true
             [
-              'case',
-              ['>=', ['zoom'], 13],
-              0.7,  // Show at zoom 13+
-              0.7   // Show on initial load
+              'step',
+              ['zoom'],
+              0.7,  // Show at zoom < 13
+              13, 0.7  // Show at zoom >= 13
             ]
           ]
         }
@@ -478,10 +478,10 @@
             
             // Hide stations by setting opacity to 0 unless zoomed in
             map.setPaintProperty('stations-points', 'circle-opacity', [
-              'case',
-              ['>=', ['zoom'], 13],
-              0.7,  // Still show at zoom 13+
-              0     // Hide otherwise
+              'step',
+              ['zoom'],
+              0,    // Hide at zoom < 13
+              13, 0.7  // Show at zoom >= 13
             ]);
           }
         
