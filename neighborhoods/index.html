@@ -447,15 +447,10 @@
           'circle-radius': 2,
           'circle-color': '#333',
           'circle-opacity': [
-            'case',
-            ['boolean', ['feature-state', 'hide'], false],
-            0,  // Hidden when feature-state hide is true
-            [
-              'step',
-              ['zoom'],
-              0.7,  // Show at zoom < 13
-              13, 0.7  // Show at zoom >= 13
-            ]
+            'step',
+            ['zoom'],
+            0.7,  // Show at zoom < 13
+            13, 0.7  // Show at zoom >= 13
           ]
         }
       });
