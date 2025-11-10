@@ -272,9 +272,10 @@
       });
     
       // Load GeoJSON files
-      const [neighborhoods, centroids] = await Promise.all([
+      const [neighborhoods, centroids, stations] = await Promise.all([
         fetch('https://burritojustice.github.io/baywheels/neighborhoods/neighborhoods_with_od.geojson').then(r => r.json()),
-        fetch('https://burritojustice.github.io/baywheels/neighborhoods/neighborhood_centroids.geojson').then(r => r.json())
+        fetch('https://burritojustice.github.io/baywheels/neighborhoods/neighborhood_centroids.geojson').then(r => r.json()),
+        fetch('https://burritojustice.github.io/baywheels/neighborhoods/baywheels_stations.geojson').then(r => r.json());
       ]);
       
       neighborhoodsData = neighborhoods;
@@ -287,7 +288,6 @@
         promoteId: 'nhood'  // Use nhood property as the feature ID
       });
     
-
       map.addLayer({
         id: 'neighborhoods-fill',
         type: 'fill',
@@ -377,25 +377,6 @@
           'circle-stroke-color': '#000'
         }
       });
-      
-      // map.addLayer({
-      //   id: 'centroids-label',
-      //   type: 'symbol',
-      //   source: 'centroids',
-      //   layout: {
-      //     'symbol-placement': 'point',
-      //     'text-allow-overlap': true,
-      //     'icon-allow-overlap': true,
-      //     'text-field': ['to-string', ['get', 'count']],
-      //     'text-size': 12,
-      //     'text-font': ['Noto Sans Regular']
-      //   },
-      //   paint: {
-      //     'text-color': '#fff',
-      //     'text-halo-color': '#000',
-      //     'text-halo-width': 1
-      //   }
-      // });
 
       map.addLayer({
         id: 'to-label',
@@ -449,6 +430,33 @@
           'text-color': '#000',
           'text-halo-color': '#fff',
           'text-halo-width': 1
+        }
+      });
+
+  
+      map.addSource('stations', {
+        type: 'geojson',
+        data: stations
+      });
+      
+      map.addLayer({
+        id: 'stations-points',
+        type: 'circle',
+        source: 'stations',
+        paint: {
+          'circle-radius': 2,
+          'circle-color': '#333',
+          'circle-opacity': [
+            'case',
+            ['boolean', ['feature-state', 'hide'], false],
+            0,  // Hidden when feature-state hide is true
+            [
+              'case',
+              ['>=', ['zoom'], 13],
+              0.7,  // Show at zoom 13+
+              0.7   // Show on initial load
+            ]
+          ]
         }
       });
       
