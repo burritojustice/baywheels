@@ -475,7 +475,16 @@
               '#666666',  // Darker when selected
               '#cccccc'   // Grey for all others after first click
             ]);
+            
+            // Hide stations by setting opacity to 0 unless zoomed in
+            map.setPaintProperty('stations-points', 'circle-opacity', [
+              'case',
+              ['>=', ['zoom'], 13],
+              0.7,  // Still show at zoom 13+
+              0     // Hide otherwise
+            ]);
           }
+        }
           
           // Reset previous selection
           if (selectedFeatureId !== null) {
