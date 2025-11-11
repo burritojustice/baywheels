@@ -325,6 +325,8 @@
         }
       });
       
+      drawStations();  
+
       //Add all neighborhood labels from centroids
       
       map.addSource('all-centroids', {
@@ -433,27 +435,26 @@
         }
       });
 
-  
-      map.addSource('stations', {
-        type: 'geojson',
-        data: stations
-      });
+      // map.addSource('stations', {
+      //   type: 'geojson',
+      //   data: stations
+      // });
       
-      map.addLayer({
-        id: 'stations-points',
-        type: 'circle',
-        source: 'stations',
-        paint: {
-          'circle-radius': 2,
-          'circle-color': '#333',
-          'circle-opacity': [
-            'step',
-            ['zoom'],
-            0.7,  // Show at zoom < 13
-            13, 0.7  // Show at zoom >= 13
-          ]
-        }
-      });
+      // map.addLayer({
+      //   id: 'stations-points',
+      //   type: 'circle',
+      //   source: 'stations',
+      //   paint: {
+      //     'circle-radius': 2,
+      //     'circle-color': '#333',
+      //     'circle-opacity': [
+      //       'step',
+      //       ['zoom'],
+      //       0.3,  // Show at zoom < 13
+      //       13, 0.7  // Show at zoom >= 13
+      //     ]
+      //   }
+      // });
       
       let selectedFeatureId = null;
       
@@ -615,6 +616,30 @@
       
       document.getElementById('info').innerHTML = html;
     }
+
+    function drawStations(){
+      map.addSource('stations', {
+        type: 'geojson',
+        data: stations
+      });
+      
+      map.addLayer({
+        id: 'stations-points',
+        type: 'circle',
+        source: 'stations',
+        paint: {
+          'circle-radius': 2,
+          'circle-color': '#333',
+          'circle-opacity': [
+            'step',
+            ['zoom'],
+            0.3,  // Show at zoom < 13
+            13, 0.7  // Show at zoom >= 13
+          ]
+        }
+      });
+    }
+    
   </script>
 </body>
 </html>
