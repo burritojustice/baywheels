@@ -617,7 +617,7 @@
       document.getElementById('info').innerHTML = html;
     }
 
-    function drawStations(){
+    function drawStations(stations){
       map.addSource('stations', {
         type: 'geojson',
         data: stations
