@@ -224,15 +224,9 @@ We could also count up rides to and from EACH neighborhood:
 
 We could make this its own table and bundle up the destinations into a json object for easier analysis.
 
-We may or may not want to include the geometries in this table. If you do, just include the centroids. Doing a join as you export to GeoJSON is straightforward. (Here we use the centroids of the polygon for display -- while some renderers like Tangrma can generate centroids on the fly, MapLibre is not one of them.)
+We may or may not want to include the geometries in this table. If you do, I'd recommend just including the centroids and not the polygons using `ST_Centroid(geom)`.
 
-        select nhood as Neighborhood, count(*) as stations
-            from baywheels_stations
-            join sf_neighborhoods on ST_Intersects(baywheels_stations.geom, sf_neighborhoods.geom)
-            group by nhood
-            order by stations desc;
-
-Howecver, if you want to look at multiple months, do any sort of time series analysis may want to export the summary data as plain JSON and join it by neighborhood name/id when you map it...
+However, if you want to look at multiple months, or do any sort of time series analysis may want to export the summary data as plain JSON and join it by neighborhood name/id when you map it. If you want to include the geoms, doing a join on the neighborhood name is straightforward.
 
 (Note we cast to BIGINT as OGR, which we use to export to GeoJSON -- HUGEINT is DuckDB's default, and OGR only handle 128-bit integers,.)
 
@@ -274,6 +268,15 @@ Howecver, if you want to look at multiple months, do any sort of time series ana
         │ Hayes Valley         │ MULTIPOLYGON (((-1…  │ {"Mission":2935,"F…  │ {"Mission":2573,"Hayes Valley":2325,"F…  │        21379 │      20152 │
         │ Pacific Heights      │ MULTIPOLYGON (((-1…  │ {"Financial Distri…  │ {"Financial District/South Beach":926,…  │         7133 │       6287 │
         │ Presidio Heights     │ MULTIPOLYGON (((-1…  │ {"Lone Mountain/US…  │ {"Lone Mountain/USF":270,"Haight Ashbu…  │         2379 │       2295 │
+        ...
 
 
-If you are just doing one set of rides in one place, this would be fine
+
+Here we count up stations and docks, and use the centroids of the neighborhood polygon for display -- while some renderers like Tangrma can generate centroids on the fly, MapLibre is not one of them.)
+
+        D select nhood as Neighborhood, sum(capacity) as capacity, count(*) as stations
+            from baywheels_stations
+            join sf_neighborhoods on ST_Intersects(baywheels_stations.geom, sf_neighborhoods.geom)
+            group by nhood
+            order by capacity desc
+          ;
