@@ -11,7 +11,7 @@ San Francisco "Analysis Neighborhood" boundaries (a contentious subject!) are av
 
 There's also a version with [Census Tracts assigned to these neighborhoods](https://data.sfgov.org/Geographic-Locations-and-Boundaries/Analysis-Neighborhoods-2020-census-tracts-assigned/sevw-6tgi/about_data) for more granular aggregation.
 
-##Getting started
+## Getting started
 
 In DuckDB, load the SPATIAL extension and import the trip data, and create the start and stop geometries from the lat and lng fields.
 
