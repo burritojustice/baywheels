@@ -1,8 +1,19 @@
 This tool displays a month of San Francisco Bay Wheels ride data, aggregated to and from each neighborhood.
 
+## Source Data
+Bay Wheel's ride data is available monthly from [Lyft's System Data page](https://www.lyft.com/bikes/bay-wheels/system-data) via this [s3 bucket](https://s3.amazonaws.com/baywheels-data/index.html). As of this writing in November 2025, a month of data is a 108MB CSV, with 485,000 rides (up 100,000 from a year ago). lat/lng are provide for the ride's start and stop locations, along with station IDs and descriptions, start/stop times, membership status and bike type (electric/acoustic).
+
+The [Bay Wheels GBFS feed](https://gbfs.baywheels.com/gbfs/2.3/gbfs.json) includes a [JSON file for station information](https://gbfs.lyft.com/gbfs/2.3/bay/en/station_information.json) (which includes coordinates). 
+
+San Francisco "Analysis Neighborhood" boundaries (a contentious subject!) are available for download on SFgov open data portal.
+
 [SF Analysis Neighborhoods](https://data.sfgov.org/Geographic-Locations-and-Boundaries/Analysis-Neighborhoods/j2bu-swwd/about_data)
 
-In DuckDB, load the SPATIAL extension and import the trip data, and create the start and stop geometries from the lat and lng fields
+There's also a version with [Census Tracts assigned to these neighborhoods](https://data.sfgov.org/Geographic-Locations-and-Boundaries/Analysis-Neighborhoods-2020-census-tracts-assigned/sevw-6tgi/about_data) for more granular aggregation.
+
+##Getting started
+
+In DuckDB, load the SPATIAL extension and import the trip data, and create the start and stop geometries from the lat and lng fields.
 
     INSTALL spatial;
     LOAD spatial;
@@ -15,7 +26,7 @@ In DuckDB, load the SPATIAL extension and import the trip data, and create the s
     alter table baywheels_ridership add column end_geom GEOMETRY;
     update baywheels_ridership set end_point = ST_POINT(end_lng,end_lat);
 
-(Note that you can't export mutliple gemetries yet, so you have to use `exclude`, and you wouldn't want to display this many points anyway unless you're clustering them...)
+(Note that you can't export multiple gemetries yet, so you have to use `exclude`, and you wouldn't want to display this many points anyway unless you're clustering them...)
 
 For reference, here's how you create a multipoint geometry and a line:
 
@@ -101,7 +112,7 @@ And if you want to get fancy, we calculate the time per ride, and shows the aver
         │         27 │ McAllister St at Baker St        │ JFK Dr at Great Highway       │ SF-GGP-05      │     29.0 │      28.0 │
         │         27 │ Page St at Masonic Ave           │ JFK Dr at Great Highway       │ SF-GGP-05      │     26.0 │      23.0 │
 
-
+## Counting Rides by Neighborhood (Point-in-Polygon)
 
 Now let's do some point-in-polygoning. Using `ST_Read`, let's bring the neighborhood polygons into a table. 
 
