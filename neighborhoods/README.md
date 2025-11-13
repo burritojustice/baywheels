@@ -190,14 +190,14 @@ If you wanted to get a count of where rides start and end per neighborhood, you 
         ...
 
 
-We could also count up rides to and from EACH neighborhood:
+We could also count up rides between stations, to and from each neighborhood the start and stop stations are in: 
 
         CREATE TABLE neighborhood_od AS
           SELECT 
             start_nhood.nhood AS origin,
             end_nhood.nhood AS destination,
             COUNT(*) AS ride_count,
-            ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER (), 2) AS pct_of_total
+    ne        ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER (), 2) AS pct_of_total
           FROM baywheels_ridership
           JOIN sf_neighborhoods AS start_nhood 
             ON ST_Intersects(baywheels_ridership.start_point, start_nhood.geom)
@@ -274,9 +274,65 @@ However, if you want to look at multiple months, or do any sort of time series a
 
 Here we count up stations and docks, and use the centroids of the neighborhood polygon for display -- while some renderers like Tangrma can generate centroids on the fly, MapLibre is not one of them.)
 
-        D select nhood as Neighborhood, sum(capacity) as capacity, count(*) as stations
+        select nhood as Neighborhood, sum(capacity) as capacity, count(*) as stations
             from baywheels_stations
             join sf_neighborhoods on ST_Intersects(baywheels_stations.geom, sf_neighborhoods.geom)
             group by nhood
             order by capacity desc
           ;
+
+Exporting as just json:
+        COPY (
+            SELECT * EXCLUDE (geom)
+            FROM neighborhoods_with_od_and_stations
+          ) TO 'neighborhoods_data.json'
+          WITH (FORMAT JSON, ARRAY true);
+
+
+
+top 5 destination neighborhoods by station:
+
+        WITH station_destinations AS (
+            SELECT 
+              start.name AS station_name,
+              start.short_name AS station_short_name,
+              end_nhood.nhood AS destination_neighborhood,
+              COUNT(*) AS ride_count
+            FROM baywheels_ridership r
+            JOIN baywheels_stations start 
+              ON ST_Intersects(r.start_point, start.geom)
+            JOIN sf_neighborhoods end_nhood 
+              ON ST_Intersects(r.end_point, end_nhood.geom)
+            WHERE start.short_name LIKE 'SF-%'  -- Only SF stations
+            GROUP BY start.name, start.short_name, end_nhood.nhood
+          ),
+          station_totals AS (
+            SELECT 
+              station_name,
+              SUM(ride_count) AS total_rides
+            FROM station_destinations
+            GROUP BY station_name
+          ),
+          ranked_destinations AS (
+            SELECT 
+              sd.*,
+              st.total_rides,
+              ROUND(100.0 * sd.ride_count / st.total_rides, 2) AS percentage,
+              ROW_NUMBER() OVER (PARTITION BY sd.station_name ORDER BY sd.ride_count DESC) AS rank
+            FROM station_destinations sd
+            JOIN station_totals st ON sd.station_name = st.station_name
+          )
+          SELECT 
+            station_name,
+            station_short_name,
+            destination_neighborhood,
+            ride_count,
+            percentage,
+            rank
+          FROM ranked_destinations
+          WHERE rank <= 10
+          ORDER BY station_name, rank;
+
+
+
+  
