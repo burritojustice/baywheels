@@ -1,5 +1,7 @@
 This tool displays a month of San Francisco Bay Wheels ride data, aggregated to and from each neighborhood.
 
+Note these notes are very much a work in progress and not yet well organized.
+
 ## Source Data
 Bay Wheel's ride data is available monthly from [Lyft's System Data page](https://www.lyft.com/bikes/bay-wheels/system-data) via this [s3 bucket](https://s3.amazonaws.com/baywheels-data/index.html). As of this writing in November 2025, a month of data is a 108MB CSV, with 485,000 rides (up 100,000 from a year ago). lat/lng are provide for the ride's start and stop locations, along with station IDs and descriptions, start/stop times, membership status and bike type (electric/acoustic).
 
