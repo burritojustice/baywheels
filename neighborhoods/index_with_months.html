@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Bay Wheels Neighborhood Flows</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel='stylesheet' href='https://unpkg.com/maplibre-gl@5.4.0/dist/maplibre-gl.css' />
+  <script src='https://unpkg.com/maplibre-gl@5.4.0/dist/maplibre-gl.js'></script>
+  <style>
+    body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
+    #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+    #sidebar {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 350px;
+      height: 100%;
+      background: white;
+      box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+      overflow-y: auto;
+      z-index: 1;
+      transition: transform 0.3s ease;
+    }
+    
+    #sidebar.closed {
+      transform: translateX(100%);
+    }
+    
+    /* Mobile: closed by default */
+    @media screen and (max-width: 768px) {
+      #sidebar {
+        width: 100%;
+        transform: translateX(100%);
+      }
+      
+      #sidebar.open {
+        transform: translateX(0);
+      }
+      
+      #toggle-sidebar::before {
+        content: '☰';
+      }
+      
+      #sidebar.open ~ #toggle-sidebar::before {
+        content: '✕';
+      }
+    }
+    
+    /* Desktop: open by default */
+    @media screen and (min-width: 769px) {
+      #sidebar {
+        transform: translateX(0);
+      }
+      
+      #sidebar.closed {
+        transform: translateX(100%);
+      }
+      
+      #toggle-sidebar::before {
+        content: '✕';
+      }
+      
+      #sidebar.closed ~ #toggle-sidebar::before {
+        content: '☰';
+      }
+    }
+    
+    #toggle-sidebar {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 2;
+      background: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      cursor: pointer;
+      font-size: 18px;
+    }
+    
+    #toggle-sidebar:hover {
+      background: #f5f5f5;
+    }
+    
+    #sidebar-content {
+      padding: 20px;
+    }
+    
+    h2 {
+      margin-top: 0;
+      font-size: 18px;
+      border-bottom: 2px solid #333;
+      padding-bottom: 10px;
+    }
+    
+    .neighborhood-name {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 15px;
+      color: #0066cc;
+    }
+    
+    .stats-summary {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 20px;
+      padding: 10px;
+      background: #f5f5f5;
+      border-radius: 4px;
+    }
+    
+    .stat-box {
+      text-align: center;
+    }
+    
+    .stat-label {
+      font-size: 12px;
+      color: #666;
+      text-transform: uppercase;
+    }
+    
+    .stat-value {
+      font-size: 24px;
+      font-weight: bold;
+      color: #333;
+    }
+    
+    .flow-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    
+    .flow-table th {
+      background: #333;
+      color: white;
+      padding: 8px;
+      text-align: left;
+      font-weight: bold;
+      position: sticky;
+      top: 0;
+    }
+    
+    .flow-table td {
+      padding: 8px;
+      border-bottom: 1px solid #ddd;
+    }
+    
+    .flow-table tr:hover {
+      background: #f5f5f5;
+    }
+    
+    .to-flow { color: #d73027; }
+    .from-flow { color: #4575b4; }
+    
+    .legend {
+      background: white;
+      padding: 10px;
+      border-radius: 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      font-size: 12px;
+      position: absolute;
+      top: 30px;
+      left: 10px;
+      z-index: 1;
+    }
+    
+    .legend-title {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    
+    .legend-scale {
+      display: flex;
+      height: 15px;
+      margin: 5px 0;
+    }
+    
+    .legend-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+    }
+    
+    /* Month selector styles */
+    .month-selector-container {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 1;
+      background: white;
+      padding: 10px;
+      border-radius: 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .month-selector-container button {
+      background: white;
+      border: 1px solid #ccc;
+      padding: 5px 10px;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 1;
+    }
+    
+    .month-selector-container button:hover:not(:disabled) {
+      background: #f5f5f5;
+    }
+    
+    .month-selector-container button:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+    
+    #month-selector {
+      padding: 5px 8px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    
+    .loading-indicator {
+      display: none;
+      font-size: 11px;
+      color: #666;
+      margin-left: 8px;
+    }
+    
+    .loading-indicator.active {
+      display: inline;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="map"></div>
+  
+  <button id="toggle-sidebar"></button>
+  
+  <div class="month-selector-container">
+    <button id="prev-month" title="Previous month">◄</button>
+    <select id="month-selector">
+      <!-- Will be populated dynamically -->
+    </select>
+    <button id="next-month" title="Next month">►</button>
+    <span class="loading-indicator" id="loading">Loading...</span>
+  </div>
+  
+  <div id="sidebar">
+    <div id="sidebar-content">
+      <h2>Bay Wheels Neighborhood Flows</h2>
+      <div id="info">
+        <p style="color: #666;">Click on a neighborhood to see ride patterns</p>
+      </div>
+    </div>
+  </div>
+  
+  <div class="legend">
+    <div class="legend-title">Bay Wheels Ride Count</div>
+    <div class="legend-scale" style="background: linear-gradient(to right, #ffffcc, #ffeda0, #fed976, #feb24c, #fd8d3c, #fc4e2a, #e31a1c, #b10026);"></div>
+    <div class="legend-labels">
+      <span>Low</span>
+      <span>High</span>
+    </div>
+  </div>
+  
+  <script>
+    const PROTOMAPS_API_KEY = 'ffc24a4325d458ce';
+
+    // Available months - update this array as you add more data files
+    const AVAILABLE_MONTHS = [
+      { id: '2024-10', label: 'October 2024', dataUrl: 'https://burritojustice.github.io/baywheels/data/2024-10.json' },
+      // Add more months here as they become available:
+      // { id: '2024-09', label: 'September 2024', dataUrl: 'https://burritojustice.github.io/baywheels/data/2024-09.json' },
+      // { id: '2024-08', label: 'August 2024', dataUrl: 'https://burritojustice.github.io/baywheels/data/2024-08.json' },
+    ];
+
+    const sidebar = document.getElementById('sidebar');
+    const toggleBtn = document.getElementById('toggle-sidebar');
+    const monthSelector = document.getElementById('month-selector');
+    const prevBtn = document.getElementById('prev-month');
+    const nextBtn = document.getElementById('next-month');
+    const loadingIndicator = document.getElementById('loading');
+    
+    let currentMonthIndex = 0;
+    let currentMonthData = null;
+    let geometriesLoaded = false;
+    let mapReady = false;
+    
+    toggleBtn.addEventListener('click', () => {
+      if (window.innerWidth <= 768) {
+        sidebar.classList.toggle('open');
+      } else {
+        sidebar.classList.toggle('closed');
+      }
+    });
+    
+    // Populate month selector
+    AVAILABLE_MONTHS.forEach((month, index) => {
+      const option = document.createElement('option');
+      option.value = index;
+      option.textContent = month.label;
+      monthSelector.appendChild(option);
+    });
+    
+    // Month selector event handlers
+    monthSelector.addEventListener('change', (e) => {
+      currentMonthIndex = parseInt(e.target.value);
+      loadMonth(currentMonthIndex);
+    });
+    
+    prevBtn.addEventListener('click', () => {
+      if (currentMonthIndex > 0) {
+        currentMonthIndex--;
+        monthSelector.value = currentMonthIndex;
+        loadMonth(currentMonthIndex);
+      }
+    });
+    
+    nextBtn.addEventListener('click', () => {
+      if (currentMonthIndex < AVAILABLE_MONTHS.length - 1) {
+        currentMonthIndex++;
+        monthSelector.value = currentMonthIndex;
+        loadMonth(currentMonthIndex);
+      }
+    });
+    
+    function updateMonthButtons() {
+      prevBtn.disabled = currentMonthIndex === 0;
+      nextBtn.disabled = currentMonthIndex === AVAILABLE_MONTHS.length - 1;
+    }
+    
+    const sf_sw = [-122.5149475795090268, 37.7081319996789333];
+    const sf_ne = [-122.3569668766597545, 37.8120157900931133];
+
+    const map = new maplibregl.Map({
+      container: 'map',
+      style: `https://api.protomaps.com/styles/v2/white.json?key=${PROTOMAPS_API_KEY}`,
+      bounds: [sf_sw, sf_ne],
+      zoom: 12
+    });
+    
+    map.addControl(new maplibregl.NavigationControl(), 'bottom-left');
+    
+    let selectedNhood = null;
+    let anySelected = false;
+    let neighborhoodsData = null;
+    let centroidsData = null;
+    
+    // ColorBrewer YlOrRd 8-class sequential palette
+    const colorStops = [
+      0, '#ffffcc',
+      100, '#ffeda0',
+      500, '#fed976',
+      1000, '#feb24c',
+      2000, '#fd8d3c',
+      3000, '#fc4e2a',
+      5000, '#e31a1c',
+      10000, '#b10026'
+    ];
+    
+    map.on('load', async () => {
+      adjustMapPadding();
+      mapReady = true;
+      
+      // Hide basemap labels
+      const placeLabelLayers = [
+        "places_subplace",
+        "places_region",
+        "places_locality",
+        "places_country"
+      ];
+
+      placeLabelLayers.forEach(layerId => {
+        map.setLayoutProperty(layerId, 'visibility', 'none');
+      });
+    
+      // Load geometry files (once)
+      await loadGeometries();
+      
+      // Load initial month data
+      await loadMonth(currentMonthIndex);
+    });
+    
+    async function loadGeometries() {
+      if (geometriesLoaded) return;
+      
+      loadingIndicator.classList.add('active');
+      
+      const [neighborhoods, centroids, stations] = await Promise.all([
+        fetch('https://burritojustice.github.io/baywheels/neighborhoods/neighborhoods.geojson').then(r => r.json()),
+        fetch('https://burritojustice.github.io/baywheels/neighborhoods/neighborhood_centroids.geojson').then(r => r.json()),
+        fetch('https://burritojustice.github.io/baywheels/neighborhoods/baywheels_stations.geojson').then(r => r.json())
+      ]);
+      
+      neighborhoodsData = neighborhoods;
+      centroidsData = centroids;
+      
+      // Add neighborhoods source and layers
+      map.addSource('neighborhoods', {
+        type: 'geojson',
+        data: neighborhoods,
+        promoteId: 'nhood'
+      });
+    
+      map.addLayer({
+        id: 'neighborhoods-fill',
+        type: 'fill',
+        source: 'neighborhoods',
+        paint: {
+          'fill-color': [
+            'case',
+            ['boolean', ['feature-state', 'selected'], false],
+            '#666666',
+            [
+              'interpolate', ['linear'],
+              ['+', 
+                ['coalesce', ['feature-state', 'total_starts'], 0],
+                ['coalesce', ['feature-state', 'total_ends'], 0]
+              ],
+              0, '#ffffcc',
+              1000, '#ffeda0',
+              5000, '#fed976',
+              10000, '#feb24c',
+              20000, '#fd8d3c',
+              30000, '#fc4e2a',
+              50000, '#e31a1c',
+              100000, '#b10026'
+            ]
+          ],
+          'fill-opacity': 0.3
+        }
+      });
+      
+      map.addLayer({
+        id: 'neighborhoods-outline',
+        type: 'line',
+        source: 'neighborhoods',
+        paint: {
+          'line-color': '#666',
+          'line-width': 1
+        }
+      });
+      
+      // Add all neighborhood labels from centroids
+      map.addSource('all-centroids', {
+        type: 'geojson',
+        data: centroids
+      });
+      
+      map.addLayer({
+        id: 'neighborhood-labels',
+        type: 'symbol',
+        source: 'all-centroids',
+        layout: {
+          'text-ignore-placement': true,
+          'text-field': ['get', 'nhood'],
+          'text-size': 11,
+          'text-font': ['Noto Sans Regular']
+        },
+        paint: {
+          'text-color': '#333',
+          'text-halo-color': '#fff',
+          'text-halo-width': 2
+        }
+      });
+      
+      // Add centroids source for flow visualization (updated on click)
+      map.addSource('centroids', {
+        type: 'geojson',
+        data: {
+          type: 'FeatureCollection',
+          features: []
+        }
+      });
+      
+      map.addLayer({
+        id: 'centroids-circle',
+        type: 'circle',
+        source: 'centroids',
+        paint: {
+          'circle-radius': [
+            'interpolate', ['linear'], ['get', 'count'],
+            0, 5,
+            10000, 30
+          ],
+          'circle-color': [
+            'interpolate', ['linear'], ['get', 'count'],
+            ...colorStops
+          ],
+          'circle-opacity': 0.8,
+          'circle-stroke-width': 2,
+          'circle-stroke-color': '#000'
+        }
+      });
+
+      map.addLayer({
+        id: 'to-label',
+        type: 'symbol',
+        source: 'centroids',
+        layout: {
+          'symbol-placement': 'point',
+          'text-allow-overlap': true,
+          'icon-allow-overlap': true,
+          'text-field': ['concat', ['to-string', ['get', 'to_count']], ' ➔'],
+          'text-size': 12,
+          'text-font': ['Noto Sans Regular'],
+          'text-radial-offset': [
+            'interpolate', ['linear'], ['get', 'count'],
+            0, .75,
+            1000, 1.25,
+            5000, 1.75,
+            10000, 3.0
+          ],
+          'text-anchor': 'right'
+        },
+        paint: {
+          'text-color': '#000',
+          'text-halo-color': '#fff',
+          'text-halo-width': 2
+        }
+      });
+
+      map.addLayer({
+        id: 'from-label',
+        type: 'symbol',
+        source: 'centroids',
+        layout: {
+          'symbol-placement': 'point',
+          'text-allow-overlap': true,
+          'icon-allow-overlap': true,
+          'text-field': ['concat', '➔ ', ['to-string', ['get', 'from_count']]],
+          'text-size': 12,
+          'text-font': ['Noto Sans Regular'],
+          'text-radial-offset': [
+            'interpolate', ['linear'], ['get', 'count'],
+            0, .75,
+            1000, 1.25,
+            5000, 1.75,
+            10000, 3.0
+          ],
+          'text-anchor': 'left'
+        },
+        paint: {
+          'text-color': '#000',
+          'text-halo-color': '#fff',
+          'text-halo-width': 1
+        }
+      });
+      
+      drawStations(stations);
+      
+      // Set up click handler
+      let selectedFeatureId = null;
+      
+      map.on('click', 'neighborhoods-fill', (e) => {
+        if (e.features.length > 0) {
+          const feature = e.features[0];
+          const nhoodName = feature.properties.nhood;
+
+          // If this is the first selection, grey out unselected neighborhoods
+          if (!anySelected) {
+            anySelected = true;
+            updatePolygonStyle();
+            
+            // Hide stations unless zoomed in
+            map.setPaintProperty('stations-points', 'circle-opacity', [
+              'step',
+              ['zoom'],
+              0,
+              13, 0.7
+            ]);
+          }
+          
+          // Reset previous selection
+          if (selectedFeatureId !== null) {
+            map.setFeatureState(
+              { source: 'neighborhoods', id: selectedFeatureId },
+              { selected: false }
+            );
+          }
+          
+          // Set new selection
+          selectedFeatureId = feature.id;
+          map.setFeatureState(
+            { source: 'neighborhoods', id: feature.id },
+            { selected: true }
+          );
+          
+          selectedNhood = nhoodName;
+          
+          // Update visualization with current month's data
+          if (currentMonthData && currentMonthData[nhoodName]) {
+            updateVisualization(nhoodName, currentMonthData[nhoodName]);
+          }
+        }
+      });
+      
+      // Cursor
+      map.on('mouseenter', 'neighborhoods-fill', () => {
+        map.getCanvas().style.cursor = 'pointer';
+      });
+      
+      map.on('mouseleave', 'neighborhoods-fill', () => {
+        map.getCanvas().style.cursor = '';
+      });
+      
+      geometriesLoaded = true;
+      loadingIndicator.classList.remove('active');
+    }
+    
+    async function loadMonth(monthIndex) {
+      if (!mapReady) return;
+      
+      loadingIndicator.classList.add('active');
+      
+      const monthConfig = AVAILABLE_MONTHS[monthIndex];
+      
+      try {
+        // Fetch month data
+        const response = await fetch(monthConfig.dataUrl);
+        const data = await response.json();
+        currentMonthData = data.neighborhoods;
+        
+        // Update feature-state for all neighborhoods
+        Object.keys(currentMonthData).forEach(nhoodName => {
+          const nhoodData = currentMonthData[nhoodName];
+          
+          // Update polygon feature state
+          map.setFeatureState(
+            { source: 'neighborhoods', id: nhoodName },
+            {
+              total_starts: nhoodData.total_starts || 0,
+              total_ends: nhoodData.total_ends || 0
+            }
+          );
+        });
+        
+        // If a neighborhood is selected, update the visualization
+        if (selectedNhood && currentMonthData[selectedNhood]) {
+          updateVisualization(selectedNhood, currentMonthData[selectedNhood]);
+        }
+        
+        updateMonthButtons();
+        
+      } catch (error) {
+        console.error('Error loading month data:', error);
+        alert(`Could not load data for ${monthConfig.label}. The data file may not exist yet.`);
+      } finally {
+        loadingIndicator.classList.remove('active');
+      }
+    }
+    
+    function updatePolygonStyle() {
+      // Update fill color to show grey for unselected when something is selected
+      map.setPaintProperty('neighborhoods-fill', 'fill-color', [
+        'case',
+        ['boolean', ['feature-state', 'selected'], false],
+        '#666666',
+        anySelected ? '#cccccc' : [
+          'interpolate', ['linear'],
+          ['+', 
+            ['coalesce', ['feature-state', 'total_starts'], 0],
+            ['coalesce', ['feature-state', 'total_ends'], 0]
+          ],
+          0, '#ffffcc',
+          1000, '#ffeda0',
+          5000, '#fed976',
+          10000, '#feb24c',
+          20000, '#fd8d3c',
+          30000, '#fc4e2a',
+          50000, '#e31a1c',
+          100000, '#b10026'
+        ]
+      ]);
+    }
+    
+    window.addEventListener('resize', adjustMapPadding);
+
+    function adjustMapPadding() {
+      const isMobile = window.innerWidth <= 768;
+      if (!isMobile) {
+        map.setPadding({ right: 350 });
+      } else {
+        map.setPadding({ right: 0 });
+      }
+    }
+    
+    function updateVisualization(selectedNhood, nhoodData) {
+      const destinations = nhoodData.destinations || {};
+      const origins = nhoodData.origins || {};
+      
+      // Create centroid features with counts for OTHER neighborhoods
+      const centroidFeatures = centroidsData.features
+        .filter(f => f.properties.nhood && f.properties.nhood !== selectedNhood)
+        .map(f => {
+          const nhood = f.properties.nhood;
+          const toCount = destinations[nhood] || 0;
+          const fromCount = origins[nhood] || 0;
+          const totalCount = toCount + fromCount;
+          
+          return {
+            type: 'Feature',
+            geometry: f.geometry,
+            properties: {
+              nhood: nhood,
+              count: totalCount,
+              to_count: toCount,
+              from_count: fromCount
+            }
+          };
+        })
+        .filter(f => f.properties.count > 0);
+      
+      map.getSource('centroids').setData({
+        type: 'FeatureCollection',
+        features: centroidFeatures
+      });
+      
+      // Update sidebar
+      updateSidebar(selectedNhood, nhoodData, destinations, origins);
+    }
+    
+    function updateSidebar(nhoodName, nhoodData, destinations, origins) {
+      // Combine and sort flows
+      const allNeighborhoods = new Set([
+        ...Object.keys(destinations),
+        ...Object.keys(origins)
+      ]);
+      
+      const flows = Array.from(allNeighborhoods).map(nhood => ({
+        neighborhood: nhood,
+        to: destinations[nhood] || 0,
+        from: origins[nhood] || 0,
+        total: (destinations[nhood] || 0) + (origins[nhood] || 0)
+      })).sort((a, b) => b.total - a.total);
+      
+      const totalTo = nhoodData.total_ends || 0;
+      const totalFrom = nhoodData.total_starts || 0;
+      
+      const monthLabel = AVAILABLE_MONTHS[currentMonthIndex].label;
+      
+      const html = `
+        <div class="neighborhood-name">${nhoodName}</div>
+        <div style="font-size: 12px; color: #666; margin-bottom: 15px;">${monthLabel}</div>
+        
+        <div class="stats-summary">
+          <div class="stat-box">
+            <div class="stat-label">Rides To</div>
+            <div class="stat-value to-flow">${totalTo.toLocaleString()}</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Rides From</div>
+            <div class="stat-value from-flow">${totalFrom.toLocaleString()}</div>
+          </div>
+        </div>
+        
+        <h3 style="font-size: 14px; margin-top: 20px; margin-bottom: 10px;">Connections</h3>
+        <table class="flow-table">
+          <thead>
+            <tr>
+              <th>Neighborhood</th>
+              <th style="text-align: right;">To</th>
+              <th style="text-align: right;">From</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${flows.map(f => `
+              <tr>
+                <td>${f.neighborhood}</td>
+                <td style="text-align: right;" class="to-flow">${f.to.toLocaleString()}</td>
+                <td style="text-align: right;" class="from-flow">${f.from.toLocaleString()}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+      
+      document.getElementById('info').innerHTML = html;
+    }
+
+    function drawStations(stations){
+      map.addSource('stations', {
+        type: 'geojson',
+        data: stations
+      });
+      
+      map.addLayer({
+        id: 'stations-points',
+        type: 'circle',
+        source: 'stations',
+        paint: {
+          'circle-radius': 2,
+          'circle-color': '#333',
+          'circle-opacity': [
+            'step',
+            ['zoom'],
+            0.3,
+            13, 0.7
+          ]
+        }
+      });
+    }
+    
+  </script>
+</body>
+</html>
