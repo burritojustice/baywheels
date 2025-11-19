@@ -295,13 +295,14 @@ Here we count up stations and docks, and use the centroids of the neighborhood p
           ;
 
 Exporting as just json:
+
         COPY (
             SELECT * EXCLUDE (geom)
             FROM neighborhoods_with_od_and_stations
           ) TO 'neighborhoods_data.json'
           WITH (FORMAT JSON, ARRAY true);
 
-
+^ prob better to use an object than an array but need to restructure
 
 top 5 destination neighborhoods by station:
 
