@@ -226,14 +226,17 @@
       }
     });
     
-    const sf_sw = [-122.5149475795090268, 37.7081319996789333];
-    const sf_ne = [-122.3569668766597545, 37.8120157900931133];
+    // const sf_sw = [-122.5149475795090268, 37.7081319996789333];
+    // const sf_ne = [-122.3569668766597545, 37.8120157900931133];
+
+    const sf_sw = [-122.516, 37.709];
+    const sf_ne = [-122.356, 37.811];
 
     const map = new maplibregl.Map({
       container: 'map',
       style: `https://api.protomaps.com/styles/v2/white.json?key=${PROTOMAPS_API_KEY}`,
-      bounds: [sf_sw, sf_ne],
-      zoom: 12
+      bounds: [sf_sw, sf_ne]
+      // zoom: 12
     });
     
     map.addControl(new maplibregl.NavigationControl(), 'bottom-left');
@@ -493,12 +496,13 @@
             updatePolygonStyle();
             
             // Hide stations unless zoomed in
-            map.setPaintProperty('stations-points', 'circle-opacity', [
-              'step',
-              ['zoom'],
-              0,
-              13, 0.7
-            ]);
+            
+            // map.setPaintProperty('stations-points', 'circle-opacity', [
+            //   'step',
+            //   ['zoom'],
+            //   0,
+            //   13, 0.7
+            // ]);
           }
           
           // Reset previous selection
