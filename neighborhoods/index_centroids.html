@@ -232,8 +232,8 @@
     // const sf_sw = [-122.516, 37.709];
     // const sf_ne = [-122.356, 37.811];
 
-    const sf_sw = [-122.526, 37.719];
-    const sf_ne = [-122.346, 37.801];
+    const sf_sw = [-122.526, 37.69];
+    const sf_ne = [-122.346, 37.83];
 
     const map = new maplibregl.Map({
       container: 'map',
@@ -676,7 +676,13 @@
         type: 'circle',
         source: 'stations',
         paint: {
-          'circle-radius': 2,
+          // 'circle-radius': 2,
+          'circle-radius': [
+            'step',
+            ['zoom'],
+            2,
+            13, 5
+          ]
           'circle-color': '#333',
           'circle-opacity': [
             'step',
