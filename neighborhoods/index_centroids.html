@@ -410,7 +410,12 @@
           ],
           'circle-opacity': 0.8,
           'circle-stroke-width': 2,
-          'circle-stroke-color': '#000'
+          'circle-stroke-color': [
+            'case',
+            ['boolean', ['get', 'is_selected'], false],
+            '#ffffff',  // White for selected neighborhood
+            '#000000'   // Black for other neighborhoods
+          ]
         }
       });
 
@@ -566,9 +571,9 @@
       const destinations = nhoodData.destinations || {};
       const origins = nhoodData.origins || {};
       
-      // Create centroid features with counts for OTHER neighborhoods
+      // Create centroid features with counts
       const centroidFeatures = centroidsData.features
-        .filter(f => f.properties.nhood && f.properties.nhood !== selectedNhood)
+        .filter(f => f.properties.nhood)
         .map(f => {
           const nhood = f.properties.nhood;
           const toCount = destinations[nhood] || 0;
@@ -582,7 +587,8 @@
               nhood: nhood,
               count: totalCount,
               to_count: toCount,
-              from_count: fromCount
+              from_count: fromCount,
+              is_selected: nhood === selectedNhood
             }
           };
         })
