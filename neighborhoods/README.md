@@ -349,4 +349,30 @@ top 5 destination neighborhoods by station:
 
 
 
-  
+  making a new table using a different set of geometries:
+
+      CREATE TABLE census_tracts_with_od AS
+      SELECT 
+          n.name,
+          n.geom,
+          -- Aggregate origin counts as a JSON object
+          (SELECT json_group_object(destination, ride_count) 
+           FROM census_tracts_od
+           WHERE origin = n.name) AS destinations,
+          -- Aggregate destination counts as a JSON object  
+          (SELECT json_group_object(origin, ride_count) 
+           FROM census_tracts_od 
+           WHERE destination = n.name) AS origins,
+          -- Total rides starting from this neighborhood
+          (SELECT SUM(ride_count) 
+           FROM census_tracts_od 
+           WHERE origin = n.name) AS total_starts,
+          -- Total rides ending in this neighborhood
+          (SELECT SUM(ride_count) 
+           FROM census_tracts_od 
+           WHERE destination = n.name) AS total_ends
+        FROM sf_census_tracts n;
+
+Probably want to make the geometry names generic so anything makes more sense -- neighborhoods, census tracts, postal codes, etc
+
+We probably should make this table without the geometries, and then join on export to geojson...
