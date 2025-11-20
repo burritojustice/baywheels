@@ -238,8 +238,9 @@
     const map = new maplibregl.Map({
       container: 'map',
       style: `https://api.protomaps.com/styles/v2/white.json?key=${PROTOMAPS_API_KEY}`,
-      bounds: [sf_sw, sf_ne]
-      // zoom: 12
+      bounds: [sf_sw, sf_ne],
+      glyphs: '../fonts/{fontstack}/{range}.pbf'
+      //glyphs: 'https://burritojustice.github.io/baywheels/fonts/{fontstack}/{range}.pbf'
     });
     
     map.addControl(new maplibregl.NavigationControl(), 'bottom-left');
@@ -441,7 +442,8 @@
             ['concat', ['to-string', ['get', 'to_count']], ' ➔']   // Regular arrow for others
           ],
           'text-size': 12,
-          'text-font': ['Noto Sans Regular'],
+          // 'text-font': ['Noto Sans Regular'],
+          'text-font': ['Noto Sans Symbols', 'Noto Sans Regular']  // Fallback to Regular if symbol not found
           'text-radial-offset': [
             'interpolate', ['linear'], ['get', 'count'],
             0, .75,
@@ -474,7 +476,8 @@
             ['concat', '➔ ', ['to-string', ['get', 'from_count']]]   // Regular arrow for others
           ],
           'text-size': 12,
-          'text-font': ['Noto Sans Regular'],
+          // 'text-font': ['Noto Sans Regular'],
+          'text-font': ['Noto Sans Symbols', 'Noto Sans Regular']  // Fallback to Regular if symbol not found
           'text-radial-offset': [
             'interpolate', ['linear'], ['get', 'count'],
             0, .75,
