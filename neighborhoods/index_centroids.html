@@ -239,8 +239,7 @@
       container: 'map',
       style: `https://api.protomaps.com/styles/v2/white.json?key=${PROTOMAPS_API_KEY}`,
       bounds: [sf_sw, sf_ne],
-      glyphs: '../fonts/{fontstack}/{range}.pbf'
-      //glyphs: 'https://burritojustice.github.io/baywheels/fonts/{fontstack}/{range}.pbf'
+      glyphs: 'https://burritojustice.github.io/baywheels/fonts/{fontstack}/{range}.pbf'
     });
     
     map.addControl(new maplibregl.NavigationControl(), 'bottom-left');
