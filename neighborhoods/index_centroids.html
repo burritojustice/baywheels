@@ -264,6 +264,11 @@
     
     map.on('load', async () => {
       adjustMapPadding();
+
+      // Override the glyphs URL from Protomaps to use our custom fonts
+      const style = map.getStyle();
+      style.glyphs = 'https://burritojustice.github.io/baywheels/fonts/{fontstack}/{range}.pbf';
+      map.setStyle(style);
       
       // Hide basemap labels
       const placeLabelLayers = [
